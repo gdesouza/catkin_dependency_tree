@@ -71,11 +71,26 @@ class PackageTestCase(unittest.TestCase):
 
     def test_get_package_from_file(self):
         package = PackageFromXmlFile('./test_package.xml')
-        package.add_dependency(Dependency('package_A', '=1.0.0', 'run_depend'))
         self.assertEqual(package.name, 'package_name')
         self.assertEqual(package.version, '1.2.0')
 
+    def test_add_dependency(self):
+        package = Package("test", "1.0")
+        package.add_dependency(Dependency('package_A', '=1.0.0', 'run_depend'))
+        self.assertEqual(package.dependencies[0].name, "package_A")
+        self.assertEqual(package.dependencies[0].version, "=1.0.0")
 
+
+    def test_print_dependencies(self):
+        import io
+        import contextlib
+        f = io.StringIO()
+        package = PackageFromXmlFile('./test_package.xml')
+        with contextlib.redirect_stdout(f):
+            package.print_dependencies()
+        
+        for dependency in package.dependencies:
+            self.assertIn(str(dependency), f.getvalue())
 
 
 if __name__ == '__main__':  # pragma: no cover

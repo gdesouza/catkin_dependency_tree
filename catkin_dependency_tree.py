@@ -22,6 +22,12 @@ class Package:
 
         self.dependencies.append(dependency)
 
+    def print_dependencies(self):
+        """Print package dependencies"""
+
+        for dependency in self.dependencies:
+            print("|-" + str(dependency))
+
     def __str__(self):
         return f'{self.name}: {self.dependencies}'
 
@@ -99,7 +105,10 @@ def main(path):  # pragma: no cover
 
     packages = [ PackageFromXmlFile(package_xml)
                  for package_xml in get_paths('package.xml', path) ]
-    
+
+    for package in packages:
+        print("\n" + package.name)
+        package.print_dependencies()
 
 
 if __name__ == "__main__":  # pragma: no cover
