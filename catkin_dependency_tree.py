@@ -1,24 +1,46 @@
 #!/usr/bin/env python3
+"""
+Creates the dependency tree in a catkin workspace
+"""
 
 import os
 import argparse
 import xml.etree.ElementTree
 from glob import glob
 
+DEPENDENCY_TYPES = [ 'run_depend', 'build_depend', 'exec_depend', 'depend',
+                     'buildtool_depend', 'build_export_depend']
 
 class Package:
+    """ROS Package as defined in package.xml"""
+
     def __init__(self):
         pass
 
+    def __str__(self):
+        return ''
+
+    def __eq__(self, other):
+        return str(self) == str(other)
 
 class Dependency:
-    def __init__(self, name, version, type):
+    """ROS package dependency"""
+
+    def __init__(self, name, version, dependency_type):
         self.name = name
         self.version = version
-        self.type = type
+        self.type = dependency_type
+
+    def __str__(self):
+        return f'({self.type}) {self.name}: {self.version}'
+
+    def __eq__(self, other):
+        return str(self) == str(other)
 
 
 def get_dependency_relationship(attrib):
+    """Returns the dependency relationship"""
+
     if attrib is None:
         return ''
 
@@ -35,6 +57,8 @@ def get_dependency_relationship(attrib):
 
 
 def extract_dependency(xml_element):
+    """Return the dependency object represented by the xml node"""
+
     text = xml_element.text
     tag = xml_element.tag
     value = get_dependency_relationship(xml_element.attrib)
@@ -42,39 +66,41 @@ def extract_dependency(xml_element):
 
 
 def get_dependencies_from(xml_element, dependency_type):
-    dependencies_list = []
-    for child in xml_element.findall(dependency_type):
-        dependencies_list.append(extract_dependency(child))
-    return dependencies_list
-    # [extract_dependency(child) for child in xml_element.findall(dependency_type)]
+    """Get child dependencies given of xml_element"""
+
+    return [extract_dependency(child) for child in xml_element.findall(dependency_type)]
 
 
 def get_paths(filename='package.xml', path='.'):
     """Return full paths of all files found under the given path"""
-    return [ y 
-             for x in os.walk(path) 
+
+    return [ y
+             for x in os.walk(path)
              for y in glob(os.path.join(x[0], filename))]
 
 
 def get_dependencies_from_file(package_xml):
     """Get the dependencies from a package.xml file"""
-    dependency_types = [ 'run_depend', 'build_depend', 'exec_depend', 'depend']
+
     tree = xml.etree.ElementTree.parse(package_xml)
     root = tree.getroot()
-    for dependency_type in dependency_types:
-        dependencies = get_dependencies_from(root, dependency_type)
+    dependencies = []
+    for dependency_type in DEPENDENCY_TYPES:
+        dependencies.extend(get_dependencies_from(root, dependency_type))
     return dependencies
 
 
-def main(path):
+def main(path):  # pragma: no cover
+    """Main function"""
+
     for package_xml in get_paths('package.xml', path):
         print(get_dependencies_from_file(package_xml))
 
 
-if __name__ == "__main__":
-   parser = argparse.ArgumentParser(usage='%(prog)s <command> [<options> ...]')
-   parser.add_argument('path', help='Source code path')
-   parser.add_argument('--filter', help='Filter packages')
-   args = parser.parse_args()
+if __name__ == "__main__":  # pragma: no cover
+    parser = argparse.ArgumentParser(usage='%(prog)s <command> [<options> ...]')
+    parser.add_argument('path', help='Source code path')
+    parser.add_argument('--filter', help='Filter packages')
+    args = parser.parse_args()
 
-   main(args.path)
+    main(args.path)

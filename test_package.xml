@@ -11,8 +11,8 @@
   <buildtool_depend version_eq="1.0.0">package_A</buildtool_depend>
   <build_depend version_gte="2.0.0">package_B</build_depend>
   <build_depend>package_C</build_depend>
-  <build_export_depend>package_C</build_export_depend>
-  <run_depend>package_D</run_depend>
-  <exec_depend>package_D</exec_depend>
+  <build_export_depend>package_D</build_export_depend>
+  <run_depend>package_E</run_depend>
+  <exec_depend>package_F</exec_depend>
 
 </package>
