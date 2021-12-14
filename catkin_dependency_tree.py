@@ -14,8 +14,13 @@ DEPENDENCY_TYPES = [ 'run_depend', 'build_depend', 'exec_depend', 'depend',
 class Package:
     """ROS Package as defined in package.xml"""
 
-    def __init__(self):
-        pass
+    def __init__(self, name, version):
+        self.name = name
+        self.version = version
+        self.dependencies = []
+
+    def add_dependency(self, dependency):
+        self.dependencies.append(dependency)
 
     def __str__(self):
         return ''
@@ -90,11 +95,24 @@ def get_dependencies_from_file(package_xml):
     return dependencies
 
 
+def get_package_from_file(package_xml):
+    """Get the dependencies from a package.xml file"""
+
+    tree = xml.etree.ElementTree.parse(package_xml)
+    root = tree.getroot()
+    name = root.find('name').text
+    version = root.find('version').text
+    return Package(name, version)
+
+
 def main(path):  # pragma: no cover
     """Main function"""
 
     for package_xml in get_paths('package.xml', path):
-        print(get_dependencies_from_file(package_xml))
+        package = get_package_from_file(package_xml)
+        for dependency in get_dependencies_from_file(package_xml):
+            package.add_dependency(dependency)
+
 
 
 if __name__ == "__main__":  # pragma: no cover
