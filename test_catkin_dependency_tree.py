@@ -4,34 +4,33 @@ from catkin_dependency_tree import Package
 from catkin_dependency_tree import PackageFromXmlFile
 from catkin_dependency_tree import Dependency
 from catkin_dependency_tree import DependencyFromXmlNode
-from catkin_dependency_tree import get_dependency_relationship
-from catkin_dependency_tree import get_dependencies_from_file
 from catkin_dependency_tree import get_paths
 
 class GetDependencyRelationshipTestCase(unittest.TestCase):
+    def setUp(self):
+        import xml.etree.ElementTree as ET
+
     def test_get_version_eq_should_be_successful(self):
-        expected_version = 1
-        attrib = {'version_eq': expected_version}
-        result = get_dependency_relationship(attrib)
-        self.assertEqual(result, f'={expected_version}')
+        import xml.etree.ElementTree as ET
+        expected_version = "1.0"
+        dep = DependencyFromXmlNode(ET.fromstring("<build_depend version_eq='1.0'/>"))
+        self.assertEqual(dep.version, f'={expected_version}')
 
     def test_get_version_gte_should_be_successful(self):
-        expected_version = 1
-        attrib = {'version_gte': expected_version}
-        result = get_dependency_relationship(attrib)
-        self.assertEqual(result, f'>={expected_version}')
+        import xml.etree.ElementTree as ET
+        expected_version = "1.0"
+        dep = DependencyFromXmlNode(ET.fromstring("<build_depend version_gte='1.0'/>"))
+        self.assertEqual(dep.version, f'>={expected_version}')
 
     def test_get_none_version_should_return_empty(self):
-        expected_version = 1
-        attrib = {'other_attrib': expected_version}
-        result = get_dependency_relationship(None)
-        self.assertEqual(result, f'')
+        import xml.etree.ElementTree as ET
+        dep = DependencyFromXmlNode(ET.fromstring("<build_depend other_attrib='1.0'/>"))
+        self.assertEqual(dep.version, f'')
 
     def test_get_no_version_should_return_empty(self):
-        expected_version = 1
-        attrib = {'other_attrib': expected_version}
-        result = get_dependency_relationship(attrib)
-        self.assertEqual(result, f'')
+        import xml.etree.ElementTree as ET
+        dep = DependencyFromXmlNode(ET.fromstring("<build_depend/>"))
+        self.assertEqual(dep.version, f'')
 
 
 class GetDependenciesTestCase(unittest.TestCase):
@@ -57,18 +56,6 @@ class GetDependenciesTestCase(unittest.TestCase):
         self.assertEqual(dependencies[0].version, '>=2.0.0')
         self.assertEqual(dependencies[1].name, 'package_C')
         self.assertEqual(dependencies[1].version, '')
-
-    def test_get_dependencies_from_file_should_return_list(self):
-        dependencies = get_dependencies_from_file('./test_package.xml')
-        dependencies_str = [str(dep) for dep in dependencies]
-        self.assertIsNotNone(dependencies)
-        self.assertEqual(len(dependencies), 6)
-        self.assertIn(str(Dependency('package_A', '=1.0.0', 'buildtool_depend')), dependencies_str)
-        self.assertIn(str(Dependency('package_B', '>=2.0.0', 'build_depend')), dependencies_str)
-        self.assertIn(str(Dependency('package_C', '', 'build_depend')), dependencies_str)
-        self.assertIn(str(Dependency('package_D', '', 'build_export_depend')), dependencies_str)
-        self.assertIn(str(Dependency('package_E', '', 'run_depend')), dependencies_str)
-        self.assertIn(str(Dependency('package_F', '', 'exec_depend')), dependencies_str)
 
     def test_get_path(self):
         result = get_paths('test_package.xml', '.')
