@@ -28,6 +28,17 @@ class Package:
     def __eq__(self, other):
         return str(self) == str(other)
 
+class PackageFromXmlFile(Package):
+    """ROS Package as defined in package.xml"""
+
+    def __init__(self, xml_file):
+        tree = xml.etree.ElementTree.parse(xml_file)
+        root = tree.getroot()
+        name = root.find('name').text
+        version = root.find('version').text
+        super().__init__(name, version)
+
+
 class Dependency:
     """ROS package dependency"""
 
@@ -95,21 +106,12 @@ def get_dependencies_from_file(package_xml):
     return dependencies
 
 
-def get_package_from_file(package_xml):
-    """Get the dependencies from a package.xml file"""
-
-    tree = xml.etree.ElementTree.parse(package_xml)
-    root = tree.getroot()
-    name = root.find('name').text
-    version = root.find('version').text
-    return Package(name, version)
-
 
 def main(path):  # pragma: no cover
     """Main function"""
 
     for package_xml in get_paths('package.xml', path):
-        package = get_package_from_file(package_xml)
+        package = PackageFromXmlFile(package_xml)
         for dependency in get_dependencies_from_file(package_xml):
             package.add_dependency(dependency)
 

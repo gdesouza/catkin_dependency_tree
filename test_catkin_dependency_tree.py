@@ -2,12 +2,12 @@ import unittest
 
 from catkin_dependency_tree import Dependency
 from catkin_dependency_tree import Package
+from catkin_dependency_tree import PackageFromXmlFile
 from catkin_dependency_tree import get_dependency_relationship
 from catkin_dependency_tree import extract_dependency
 from catkin_dependency_tree import get_dependencies_from
 from catkin_dependency_tree import get_dependencies_from_file
 from catkin_dependency_tree import get_paths
-from catkin_dependency_tree import get_package_from_file
 
 class GetDependencyRelationshipTestCase(unittest.TestCase):
     def test_get_version_eq_should_be_successful(self):
@@ -87,7 +87,7 @@ class PackageTestCase(unittest.TestCase):
         self.assertTrue(package_a == package_same)
 
     def test_get_package_from_file(self):
-        package = get_package_from_file('./test_package.xml')
+        package = PackageFromXmlFile('./test_package.xml')
         package.add_dependency(Dependency('package_A', '=1.0.0', 'run_depend'))
         self.assertEqual(package.name, 'package_name')
         self.assertEqual(package.version, '1.2.0')
