@@ -1,11 +1,10 @@
 import unittest
 
-from catkin_dependency_tree import Dependency
 from catkin_dependency_tree import Package
 from catkin_dependency_tree import PackageFromXmlFile
+from catkin_dependency_tree import Dependency
+from catkin_dependency_tree import DependencyFromXmlNode
 from catkin_dependency_tree import get_dependency_relationship
-from catkin_dependency_tree import extract_dependency
-from catkin_dependency_tree import get_dependencies_from
 from catkin_dependency_tree import get_dependencies_from_file
 from catkin_dependency_tree import get_paths
 
@@ -34,17 +33,9 @@ class GetDependencyRelationshipTestCase(unittest.TestCase):
         result = get_dependency_relationship(attrib)
         self.assertEqual(result, f'')
 
-class ExtractDependencyTestCase(unittest.TestCase):
-    def test_extract_dependency_with_version_should_return_success(self):
-        import xml.etree.ElementTree
-        tree = xml.etree.ElementTree.parse('./test_package.xml')
-        root = tree.getroot()
-        dependency = extract_dependency(root.find('buildtool_depend'))
-        self.assertEqual(dependency.name, "package_A")
-        self.assertEqual(dependency.version, "=1.0.0")
-        self.assertEqual(dependency.type, "buildtool_depend")
 
 class GetDependenciesTestCase(unittest.TestCase):
+
     def test_dependency_class(self):
         package_a = Dependency('package_A', '=1.0.0', 'run_depend')
         package_same = Dependency('package_A', '=1.0.0', 'run_depend')
@@ -52,11 +43,14 @@ class GetDependenciesTestCase(unittest.TestCase):
         self.assertTrue(package_a == package_same)
         self.assertFalse(package_a == package_differ)
 
-    def test_get_dependencies_should_return_list(self):
+    def test_init_dependency_with_xml_node(self):
         import xml.etree.ElementTree
         tree = xml.etree.ElementTree.parse('./test_package.xml')
         root = tree.getroot()
-        dependencies = get_dependencies_from(root, 'build_depend')
+        xml_nodes = root.findall('build_depend')
+
+        dependencies = [ DependencyFromXmlNode(xml_node) 
+                         for xml_node in xml_nodes ]
         self.assertIsNotNone(dependencies)
         self.assertEqual(len(dependencies), 2)
         self.assertEqual(dependencies[0].name, 'package_B')
@@ -84,7 +78,9 @@ class PackageTestCase(unittest.TestCase):
     def test_package_class(self):
         package_a = Package('package_A', '=1.0.0')
         package_same = Package('package_A', '=1.0.0')
+        package_diff = Package('package_B', '=1.0.0')
         self.assertTrue(package_a == package_same)
+        self.assertFalse(package_a == package_diff)
 
     def test_get_package_from_file(self):
         package = PackageFromXmlFile('./test_package.xml')

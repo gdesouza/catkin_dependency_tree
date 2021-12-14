@@ -8,8 +8,6 @@ import argparse
 import xml.etree.ElementTree
 from glob import glob
 
-DEPENDENCY_TYPES = [ 'run_depend', 'build_depend', 'exec_depend', 'depend',
-                     'buildtool_depend', 'build_export_depend']
 
 class Package:
     """ROS Package as defined in package.xml"""
@@ -23,7 +21,7 @@ class Package:
         self.dependencies.append(dependency)
 
     def __str__(self):
-        return ''
+        return f'{self.name}: {self.dependencies}'
 
     def __eq__(self, other):
         return str(self) == str(other)
@@ -38,9 +36,16 @@ class PackageFromXmlFile(Package):
         version = root.find('version').text
         super().__init__(name, version)
 
+        self.dependencies = [ DependencyFromXmlNode(child) 
+                             for dependency_type in Dependency.TYPES
+                             for child in root.findall(dependency_type)]
+
 
 class Dependency:
     """ROS package dependency"""
+
+    TYPES = [ 'run_depend', 'build_depend', 'exec_depend', 'depend',
+                     'buildtool_depend', 'build_export_depend']
 
     def __init__(self, name, version, dependency_type):
         self.name = name
@@ -52,6 +57,17 @@ class Dependency:
 
     def __eq__(self, other):
         return str(self) == str(other)
+
+
+class DependencyFromXmlNode(Dependency):
+    """Instantiate ROS package dependency from XML node"""
+
+    def __init__(self, xml_node):
+        text = xml_node.text
+        tag = xml_node.tag
+        value = get_dependency_relationship(xml_node.attrib)
+        super().__init__(text, value, tag)
+
 
 
 def get_dependency_relationship(attrib):
@@ -72,19 +88,9 @@ def get_dependency_relationship(attrib):
     return f'{rel}{value}'
 
 
-def extract_dependency(xml_element):
-    """Return the dependency object represented by the xml node"""
-
-    text = xml_element.text
-    tag = xml_element.tag
-    value = get_dependency_relationship(xml_element.attrib)
-    return Dependency(text, value, tag)
 
 
-def get_dependencies_from(xml_element, dependency_type):
-    """Get child dependencies given of xml_element"""
 
-    return [extract_dependency(child) for child in xml_element.findall(dependency_type)]
 
 
 def get_paths(filename='package.xml', path='.'):
@@ -100,11 +106,12 @@ def get_dependencies_from_file(package_xml):
 
     tree = xml.etree.ElementTree.parse(package_xml)
     root = tree.getroot()
-    dependencies = []
-    for dependency_type in DEPENDENCY_TYPES:
-        dependencies.extend(get_dependencies_from(root, dependency_type))
-    return dependencies
 
+    dependencies = [ DependencyFromXmlNode(xml_node) 
+                     for dependency_type in Dependency.TYPES
+                     for xml_node in root.findall(dependency_type) ]
+
+    return dependencies
 
 
 def main(path):  # pragma: no cover
