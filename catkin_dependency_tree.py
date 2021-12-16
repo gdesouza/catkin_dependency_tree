@@ -61,7 +61,7 @@ class Dependency:
         self.type = dependency_type
 
     def __str__(self):
-        return f'({self.type}) {self.name}: {self.version}'
+        return f'{self.name}: {self.version} ({self.type}) '
 
     def __eq__(self, other):
         return str(self) == str(other)
@@ -88,7 +88,7 @@ class DependencyFromXmlNode(Dependency):
             value = attrib['version_gte']
         else:
             rel = ''
-            value = ''
+            value = 'any'
         return f'{rel}{value}'
 
 
